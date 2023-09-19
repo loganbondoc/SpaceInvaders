@@ -5,9 +5,11 @@ import java.util.List;
 
 import invaders.GameObject;
 import invaders.entities.Player;
+import invaders.entities.Enemy;
 import invaders.physics.Moveable;
 import invaders.physics.Vector2D;
 import invaders.rendering.Renderable;
+import invaders.logic.Wave;
 
 /**
  * This class manages the main loop and logic of the game
@@ -17,6 +19,9 @@ public class GameEngine {
 	private List<GameObject> gameobjects;
 	private List<Renderable> renderables;
 	private Player player;
+	private Enemy enemy;
+	private Wave wave;
+	private boolean gameLost;
 
 	private boolean left;
 	private boolean right;
@@ -28,6 +33,42 @@ public class GameEngine {
 
 		player = new Player(new Vector2D(200, 380));
 		renderables.add(player);
+
+		wave = new Wave(new ArrayList<ArrayList<Enemy>>());
+		wave.generateWave();
+		for(ArrayList<Enemy> enemyRow: wave.getEnemyList()){
+			for(int i = 0; i < 9; i++){
+				renderables.add(enemyRow.get(i));
+			}
+		}
+
+
+		// builder for Aliens
+		// create each Alien
+		// create a new vector2d
+		// read from json
+		// set the aliens one to that
+		// move onto the next
+
+//		waveRow = new ArrayList<Alien>();
+//		wave = new Wave;
+		// add them to wave
+		// add each one to renderables
+
+		// Loop for a game
+//		while (gameLost == false){
+//			// call wavecheck
+////			if wave
+//		}
+			// call wavecheck
+			// if wave < 0
+				// do nothing
+			// else
+				// generateWave builder thing
+				// enemy = new Enemy(new Vector2D(0, 0));
+				// renderables.add(enemy);
+				// add all characters from wave into renderable list
+		// if player dies do game over screen
 	}
 
 	/**
