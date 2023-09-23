@@ -10,23 +10,20 @@ import javafx.scene.image.Image;
 
 import java.io.File;
 
-public class Enemy implements Moveable, Damagable, Renderable {
+public class Bunker implements Damagable, Renderable {
 
     private final Vector2D position;
     private final Animator anim = null;
     private double health = 100;
     private int value;
-    private boolean movingRight = true;
-//    private boolean movingDown = false;
 
-    private final double width = 25;
-    private final double height = 30;
+    private final double width = 50;
+    private final double height = 60;
     private final Image image;
 
-    public Enemy(EnemyType enemyType, Vector2D location) {
+    public Bunker(Vector2D location, double width, double height) {
         this.position = location;
-        this.image = new Image(new File("src/main/resources/" + enemyType.getImageName()).toURI().toString());
-        this.value = enemyType.getValue();
+        this.image = new Image(new File("src/main/resources/bunker1.png").toURI().toString(), width, height, true, true);
     }
 
     @Override
@@ -44,31 +41,6 @@ public class Enemy implements Moveable, Damagable, Renderable {
         return this.health > 0;
     }
 
-    @Override
-    public void up() {
-        return;
-    }
-
-    @Override
-    public void down() {
-        this.position.setY(this.position.getY() + 10);
-    }
-
-    @Override
-    public void left() {
-        this.position.setX(this.position.getX() - 10);
-    }
-
-    @Override
-    public void right() {
-        this.position.setX(this.position.getX() + 10);
-    }
-
-    public void shoot(){
-        //todo
-    }
-
-    // getters
     @Override
     public Image getImage() {
         return this.image;
@@ -93,13 +65,4 @@ public class Enemy implements Moveable, Damagable, Renderable {
     public Layer getLayer() {
         return Layer.FOREGROUND;
     }
-
-    public void setMovingRight(boolean movingRight) {
-        this.movingRight = movingRight;
-    }
-
-    public boolean getMovingRight() {
-        return movingRight;
-    }
-
 }

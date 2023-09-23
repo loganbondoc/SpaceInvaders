@@ -17,6 +17,7 @@ import org.json.simple.parser.JSONParser;
 
 public class Wave {
     private ArrayList<ArrayList<Enemy>> enemyList;
+    private boolean gameLost = false;
 
     public Wave(ArrayList<ArrayList<Enemy>> enemyList){
         this.enemyList = enemyList;
@@ -100,8 +101,8 @@ public class Wave {
     }
 
 
-    // Helper method to map projectile type to EnemyType (you can adjust this as needed)
-    private EnemyType getEnemyTypeFromProjectile(String projectile) {
+    // Helper method to map projectile type to EnemyType
+    public EnemyType getEnemyTypeFromProjectile(String projectile) {
         switch (projectile) {
             case "fast_straight":
                 return EnemyType.TYPE1;
@@ -112,6 +113,51 @@ public class Wave {
         }
     }
 
+    public void moveEnemies(double xMax, double xMin, double yMax) {
+        // Check if any enemy has reached the end
+        ArrayList<Enemy> finalRow = this.getEnemyList().get(this.getEnemyList().size() - 1);
+        if (finalRow.get(0).getPosition().getY() + finalRow.get(0).getHeight() >= yMax) {
+            gameLost = true;
+        }
+
+        double futureXpos;
+
+        boolean shouldMoveDown = false; // Check if the enemies should move down
+
+        for (ArrayList<Enemy> enemyRow : this.getEnemyList()) {
+            if (enemyRow.get(0).getPosition().getX() <= xMin) {
+                shouldMoveDown = true;
+                break;
+            }
+
+            if (enemyRow.get(enemyRow.size() - 1).getPosition().getX() + enemyRow.get(enemyRow.size() - 1).getWidth() >= xMax) {
+                shouldMoveDown = true;
+                break;
+            }
+        }
+
+        for (ArrayList<Enemy> enemyRow : this.getEnemyList()) {
+            if (shouldMoveDown) {
+                for (Enemy enemy : enemyRow) {
+                    enemy.down();
+                    enemy.setMovingRight(!enemy.getMovingRight());
+                }
+            } else {
+                for (Enemy enemy : enemyRow) {
+                    if (enemy.getMovingRight()) {
+                        enemy.right();
+                    } else {
+                        enemy.left();
+                    }
+                }
+            }
+        }
+    }
+
+
+
+
+
     // setters and getters
     public void setEnemyList(ArrayList<ArrayList<Enemy>> enemyList) {
         this.enemyList = enemyList;
@@ -120,8 +166,12 @@ public class Wave {
     public ArrayList<ArrayList<Enemy>> getEnemyList() {
         return enemyList;
     }
+
+    public void setGameLost(boolean gameLost) {
+        this.gameLost = gameLost;
+    }
+
+    public boolean getGameLost() {
+        return gameLost;
+    }
 }
-
-
-
-

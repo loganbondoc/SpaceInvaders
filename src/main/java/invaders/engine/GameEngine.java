@@ -10,21 +10,25 @@ import invaders.physics.Moveable;
 import invaders.physics.Vector2D;
 import invaders.rendering.Renderable;
 import invaders.logic.Wave;
+import invaders.entities.Bunker;
+import invaders.logic.EnemyMovement;
 
 /**
  * This class manages the main loop and logic of the game
  */
-public class GameEngine {
+public class GameEngine implements EnemyMovement {
 
 	private List<GameObject> gameobjects;
 	private List<Renderable> renderables;
 	private Player player;
-	private Enemy enemy;
 	private Wave wave;
 	private boolean gameLost;
 
 	private boolean left;
 	private boolean right;
+
+	private long lastWaveMoveTime;
+	private long waveMoveInterval = 250; // One-second interval (1000 milliseconds)
 
 	public GameEngine(String config){
 		// read the config here
@@ -34,6 +38,7 @@ public class GameEngine {
 		player = new Player(new Vector2D(200, 380));
 		renderables.add(player);
 
+		// initial generation of a wave
 		wave = new Wave(new ArrayList<ArrayList<Enemy>>());
 		wave.generateWave();
 		for(ArrayList<Enemy> enemyRow: wave.getEnemyList()){
@@ -42,33 +47,10 @@ public class GameEngine {
 			}
 		}
 
+//		Bunker bunker = new Bunker(new Vector2D(0,0), 50, 50);
+//		renderables.add(bunker);
 
-		// builder for Aliens
-		// create each Alien
-		// create a new vector2d
-		// read from json
-		// set the aliens one to that
-		// move onto the next
-
-//		waveRow = new ArrayList<Alien>();
-//		wave = new Wave;
-		// add them to wave
-		// add each one to renderables
-
-		// Loop for a game
-//		while (gameLost == false){
-//			// call wavecheck
-////			if wave
-//		}
-			// call wavecheck
-			// if wave < 0
-				// do nothing
-			// else
-				// generateWave builder thing
-				// enemy = new Enemy(new Vector2D(0, 0));
-				// renderables.add(enemy);
-				// add all characters from wave into renderable list
-		// if player dies do game over screen
+		lastWaveMoveTime = System.currentTimeMillis();
 	}
 
 	/**
@@ -78,6 +60,22 @@ public class GameEngine {
 		movePlayer();
 		for(GameObject go: gameobjects){
 			go.update();
+		}
+
+		long currentTime = System.currentTimeMillis();
+
+		if (currentTime - lastWaveMoveTime >= waveMoveInterval) {
+			if (wave.waveEmpty()) {
+				// Make a new wave
+				wave.clearWave();
+				wave.generateWave();
+			}
+
+			wave.moveEnemies(640, 0, 400);
+			System.out.println("Moved them");
+
+			// Update the last wave move time
+			lastWaveMoveTime = currentTime;
 		}
 
 		// ensure that renderable foreground objects don't go off-screen
