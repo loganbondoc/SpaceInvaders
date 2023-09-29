@@ -6,17 +6,15 @@ import java.util.List;
 import invaders.GameObject;
 import invaders.entities.Player;
 import invaders.entities.Enemy;
-import invaders.physics.Moveable;
 import invaders.physics.Vector2D;
 import invaders.rendering.Renderable;
 import invaders.logic.Wave;
-import invaders.entities.Bunker;
-import invaders.logic.EnemyMovement;
+import invaders.entities.Projectile;
 
 /**
  * This class manages the main loop and logic of the game
  */
-public class GameEngine implements EnemyMovement {
+public class GameEngine {
 
 	private List<GameObject> gameobjects;
 	private List<Renderable> renderables;
@@ -28,12 +26,17 @@ public class GameEngine implements EnemyMovement {
 	private boolean right;
 
 	private long lastWaveMoveTime;
-	private long waveMoveInterval = 250; // One-second interval (1000 milliseconds)
+	private long waveMoveInterval = 100; // interval in milliseconds // og is 250
+
+	private List<Projectile> playerProjectiles;
+	private List<Projectile> enemyProjectiles;
 
 	public GameEngine(String config){
 		// read the config here
 		gameobjects = new ArrayList<GameObject>();
 		renderables = new ArrayList<Renderable>();
+		playerProjectiles = new ArrayList<Projectile>();
+		enemyProjectiles = new ArrayList<Projectile>();
 
 		player = new Player(new Vector2D(200, 380));
 		renderables.add(player);
@@ -62,6 +65,20 @@ public class GameEngine implements EnemyMovement {
 			go.update();
 		}
 
+		for(Projectile p: playerProjectiles){
+			if(p.offscreen() == true){
+				playerProjectiles.remove(p);
+				renderables.remove(p);
+			}
+		}
+
+		for(Projectile p: enemyProjectiles){
+			if(p.offscreen() == true){
+				enemyProjectiles.remove(p);
+				renderables.remove(p);
+			}
+		}
+
 		long currentTime = System.currentTimeMillis();
 
 		if (currentTime - lastWaveMoveTime >= waveMoveInterval) {
@@ -72,10 +89,22 @@ public class GameEngine implements EnemyMovement {
 			}
 
 			wave.moveEnemies(640, 0, 400);
-			System.out.println("Moved them");
+			if(enemyProjectiles.size() < 3){
+				Projectile shot = wave.enemiesShoot();
+				enemyProjectiles.add(shot);
+				renderables.add(shot);
+			}
 
 			// Update the last wave move time
 			lastWaveMoveTime = currentTime;
+		}
+
+		for(Projectile projectile: enemyProjectiles){
+			projectile.move();
+		}
+
+		for(Projectile projectile: playerProjectiles){
+			projectile.move();
 		}
 
 		// ensure that renderable foreground objects don't go off-screen
@@ -121,9 +150,23 @@ public class GameEngine implements EnemyMovement {
 		this.right = true;
 	}
 
+//	public boolean projectileLimitReached(){
+//		if (this.projectiles.size() >= 3){
+//			return false;
+//		} else {
+//			return true;
+//		}
+//	}
+
 	public boolean shootPressed(){
-		player.shoot();
+		Projectile projectile = player.shoot();
+		if (playerProjectiles.size() >= 1){
+			return false;
+		}
+		playerProjectiles.add(projectile);
+		renderables.add(projectile);
 		return true;
+
 	}
 
 	private void movePlayer(){

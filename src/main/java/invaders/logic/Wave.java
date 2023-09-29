@@ -3,6 +3,7 @@ package invaders.logic;
 import invaders.entities.Enemy;
 import invaders.entities.EnemyType;
 import invaders.physics.Vector2D;
+import invaders.entities.Projectile;
 
 import java.io.FileReader;
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.io.InputStreamReader;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import java.util.Random;
 
 public class Wave {
     private ArrayList<ArrayList<Enemy>> enemyList;
@@ -74,8 +76,12 @@ public class Wave {
                     // Create an EnemyType based on the projectile type (you can adjust this as needed)
                     EnemyType enemyType = getEnemyTypeFromProjectile(projectile);
 
-                    // Create the Enemy object
-                    Enemy enemy = new Enemy(enemyType, location);
+                    // Create an EnemyBuilder and set the enemyType and location
+                    EnemyBuilder enemyBuilder = new EnemyBuilder(enemyType)
+                            .setLocation(location);
+
+                    // Build the enemy using the builder
+                    Enemy enemy = enemyBuilder.build();
 
                     // Add the enemy to the current row
                     currentRow.add(enemy);
@@ -101,16 +107,30 @@ public class Wave {
     }
 
 
+
     // Helper method to map projectile type to EnemyType
     public EnemyType getEnemyTypeFromProjectile(String projectile) {
         switch (projectile) {
-            case "fast_straight":
-                return EnemyType.TYPE1;
             case "slow_straight":
+                return EnemyType.TYPE1;
+            case "fast_straight":
                 return EnemyType.TYPE2;
             default:
                 return EnemyType.TYPE3; // Default enemy type
         }
+    }
+
+    public boolean shouldMoveDown(double xMax, double xMin){
+        // check if enemies should move down
+        for (ArrayList<Enemy> enemyRow: this.enemyList){
+            for(Enemy enemy: enemyRow){
+                if((enemy.getPosition().getX() -10 - enemy.getWidth()) <= xMin
+                        || (enemy.getPosition().getX() + 10 + enemy.getWidth()) >= xMax){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public void moveEnemies(double xMax, double xMin, double yMax) {
@@ -120,29 +140,21 @@ public class Wave {
             gameLost = true;
         }
 
-        double futureXpos;
-
-        boolean shouldMoveDown = false; // Check if the enemies should move down
-
-        for (ArrayList<Enemy> enemyRow : this.getEnemyList()) {
-            if (enemyRow.get(0).getPosition().getX() <= xMin) {
-                shouldMoveDown = true;
-                break;
-            }
-
-            if (enemyRow.get(enemyRow.size() - 1).getPosition().getX() + enemyRow.get(enemyRow.size() - 1).getWidth() >= xMax) {
-                shouldMoveDown = true;
-                break;
-            }
-        }
-
-        for (ArrayList<Enemy> enemyRow : this.getEnemyList()) {
-            if (shouldMoveDown) {
-                for (Enemy enemy : enemyRow) {
+        // check if enemies should move down
+        if (this.shouldMoveDown(xMax, xMin)) {
+            for (ArrayList<Enemy> enemyRow : this.enemyList) {
+                for(Enemy enemy: enemyRow){
                     enemy.down();
                     enemy.setMovingRight(!enemy.getMovingRight());
+                    if (enemy.getMovingRight()) {
+                        enemy.right();
+                    } else {
+                        enemy.left();
+                    }
                 }
-            } else {
+            }
+        } else {
+            for (ArrayList<Enemy> enemyRow : this.enemyList) {
                 for (Enemy enemy : enemyRow) {
                     if (enemy.getMovingRight()) {
                         enemy.right();
@@ -154,9 +166,23 @@ public class Wave {
         }
     }
 
+    public Projectile enemiesShoot() {
+        // Generate a random row index within the enemyList size
+        int selectedRow = new Random().nextInt(enemyList.size());
 
+        // Get the selected row of enemies
+        ArrayList<Enemy> selectedEnemyRow = enemyList.get(selectedRow);
 
+        // Generate a random index within the selected row
+        int randomEnemyIndex = new Random().nextInt(selectedEnemyRow.size());
 
+        // Get the random enemy from the selected row
+        Enemy randomEnemy = selectedEnemyRow.get(randomEnemyIndex);
+
+        // Call the shoot method of the random enemy to make it shoot
+        Projectile enemyProjectile = randomEnemy.shoot();
+        return enemyProjectile; // Return the created projectile
+    }
 
     // setters and getters
     public void setEnemyList(ArrayList<ArrayList<Enemy>> enemyList) {

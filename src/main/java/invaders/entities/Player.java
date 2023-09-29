@@ -5,6 +5,8 @@ import invaders.physics.Moveable;
 import invaders.physics.Vector2D;
 import invaders.rendering.Animator;
 import invaders.rendering.Renderable;
+import invaders.physics.ProjectileStrategy;
+import invaders.physics.SlowProjectileStrategy;
 
 import javafx.scene.image.Image;
 
@@ -20,9 +22,12 @@ public class Player implements Moveable, Damagable, Renderable {
     private final double height = 30;
     private final Image image;
 
+    private ProjectileStrategy projectileStrategy;
+
     public Player(Vector2D position){
         this.image = new Image(new File("src/main/resources/player.png").toURI().toString(), width, height, true, true);
         this.position = position;
+        this.projectileStrategy = new SlowProjectileStrategy(); // Use the SlowProjectileStrategy for all player shots
     }
 
     @Override
@@ -60,8 +65,9 @@ public class Player implements Moveable, Damagable, Renderable {
         this.position.setX(this.position.getX() + 1);
     }
 
-    public void shoot(){
-        // todo
+    public Projectile shoot(){
+        Projectile projectile = new PlayerProjectile(new Vector2D(this.position.getX(), this.position.getY()), projectileStrategy);
+        return projectile;
     }
 
     @Override

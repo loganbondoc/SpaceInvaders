@@ -2,9 +2,12 @@ package invaders.entities;
 
 import invaders.logic.Damagable;
 import invaders.physics.Moveable;
+import invaders.physics.ProjectileStrategy;
 import invaders.physics.Vector2D;
 import invaders.rendering.Animator;
 import invaders.rendering.Renderable;
+
+import invaders.physics.ProjectileStrategy;
 
 import javafx.scene.image.Image;
 
@@ -17,16 +20,18 @@ public class Enemy implements Moveable, Damagable, Renderable {
     private double health = 100;
     private int value;
     private boolean movingRight = true;
-//    private boolean movingDown = false;
 
     private final double width = 25;
     private final double height = 30;
     private final Image image;
 
+    private ProjectileStrategy projectileStrategy;
+
     public Enemy(EnemyType enemyType, Vector2D location) {
         this.position = location;
         this.image = new Image(new File("src/main/resources/" + enemyType.getImageName()).toURI().toString());
         this.value = enemyType.getValue();
+        this.projectileStrategy = enemyType.getProjectileStrategy();
     }
 
     @Override
@@ -64,8 +69,9 @@ public class Enemy implements Moveable, Damagable, Renderable {
         this.position.setX(this.position.getX() + 10);
     }
 
-    public void shoot(){
-        //todo
+    public Projectile shoot(){
+        Projectile projectile = new EnemyProjectile(new Vector2D(this.position.getX(), this.position.getY()), projectileStrategy);
+        return projectile;
     }
 
     // getters
