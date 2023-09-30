@@ -1,19 +1,12 @@
 package invaders.entities;
 
-import invaders.logic.Damagable;
 import invaders.physics.FastProjectileStrategy;
-import invaders.physics.Moveable;
-import invaders.physics.Vector2D;
-import invaders.rendering.Animator;
-import invaders.rendering.Renderable;
-
 import invaders.physics.ProjectileStrategy;
 import invaders.physics.SlowProjectileStrategy;
-import javafx.scene.image.Image;
 
-import java.io.File;
-
-
+/**
+ * The set of available enemy types
+ */
 public enum EnemyType {
     TYPE1(10, "enemy1.png", new SlowProjectileStrategy()),
     TYPE2(20, "enemy2.png", new FastProjectileStrategy()),

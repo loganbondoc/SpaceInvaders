@@ -3,8 +3,11 @@ package invaders.logic;
 import invaders.physics.Vector2D;
 import invaders.entities.Enemy;
 import invaders.entities.EnemyType;
-import javafx.scene.image.Image;
 
+
+/**
+ * Builder design pattern for enemy creation
+ */
 public class EnemyBuilder {
     private EnemyType enemyType;
     private Vector2D location;
@@ -27,7 +30,7 @@ public class EnemyBuilder {
         if (location != null) {
             finalLocation = location;
         } else {
-            finalLocation = new Vector2D(0, 0); // Default location if not provided
+            finalLocation = new Vector2D(0, 0); // default location
         }
 
         return new Enemy(enemyType, finalLocation);

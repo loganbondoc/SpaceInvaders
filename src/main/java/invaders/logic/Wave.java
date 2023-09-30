@@ -4,19 +4,17 @@ import invaders.entities.Enemy;
 import invaders.entities.EnemyType;
 import invaders.physics.Vector2D;
 import invaders.entities.Projectile;
-
-import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import java.util.Random;
 
+/**
+ * Overarching class that manages all enemies on screen
+ */
 public class Wave {
     private ArrayList<ArrayList<Enemy>> enemyList;
     private boolean gameLost = false;
@@ -40,50 +38,39 @@ public class Wave {
         }
     }
 
+    /**
+     * Generates enemy wave based on config.json
+     */
     public void generateWave() {
         JSONParser parser = new JSONParser();
 
         try {
-            // Parse the config.json file
+            // parse enemies from config.json file
             InputStream inputStream = getClass().getClassLoader().getResourceAsStream("config.json");
 
             if (inputStream != null) {
-                // Parse the config.json file
                 InputStreamReader reader = new InputStreamReader(inputStream);
                 Object obj = parser.parse(reader);
                 JSONObject jsonObject = (JSONObject) obj;
-
-                // Get the "Enemies" array from the config
                 JSONArray enemiesArray = (JSONArray) jsonObject.get("Enemies");
-
                 int rowIndex = 0;
                 ArrayList<Enemy> currentRow = new ArrayList<>();
 
-                // Loop through the enemies in the config and create Enemy objects
+                // Loop config enemies and initialise position, type and projectile
                 for (Object enemyObj : enemiesArray) {
                     JSONObject enemyJson = (JSONObject) enemyObj;
-
-                    // Get the x and y positions from the config
                     long xPosition = (long) ((JSONObject) enemyJson.get("position")).get("x");
                     long yPosition = (long) ((JSONObject) enemyJson.get("position")).get("y");
-
-                    // Create a Vector2D for the location
                     Vector2D location = new Vector2D(xPosition, yPosition);
-
-                    // Get the projectile type (you can adjust this as needed)
                     String projectile = (String) enemyJson.get("projectile");
-
-                    // Create an EnemyType based on the projectile type (you can adjust this as needed)
                     EnemyType enemyType = getEnemyTypeFromProjectile(projectile);
 
-                    // Create an EnemyBuilder and set the enemyType and location
+                    // create EnemyBuilder and set enemyType and location
                     EnemyBuilder enemyBuilder = new EnemyBuilder(enemyType)
                             .setLocation(location);
 
-                    // Build the enemy using the builder
+                    // build enemy
                     Enemy enemy = enemyBuilder.build();
-
-                    // Add the enemy to the current row
                     currentRow.add(enemy);
 
                     // If the current row is full, add it to the enemyList
@@ -108,7 +95,7 @@ public class Wave {
 
 
 
-    // Helper method to map projectile type to EnemyType
+    // map projectile type to EnemyType
     public EnemyType getEnemyTypeFromProjectile(String projectile) {
         switch (projectile) {
             case "slow_straight":
@@ -134,16 +121,15 @@ public class Wave {
     }
 
     public void moveEnemies(double xMax, double xMin, double yMax) {
-        // Check if any enemy has reached the end
-        ArrayList<Enemy> finalRow = this.getEnemyList().get(this.getEnemyList().size() - 1);
-        if (finalRow.get(0).getPosition().getY() + finalRow.get(0).getHeight() >= yMax) {
-            gameLost = true;
-        }
 
         // check if enemies should move down
         if (this.shouldMoveDown(xMax, xMin)) {
             for (ArrayList<Enemy> enemyRow : this.enemyList) {
                 for(Enemy enemy: enemyRow){
+                    if (enemy.getPosition().getY() + enemy.getHeight() >= yMax){
+                        gameLost = true;
+                        break;
+                    }
                     enemy.down();
                     enemy.setMovingRight(!enemy.getMovingRight());
                     if (enemy.getMovingRight()) {

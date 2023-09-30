@@ -6,11 +6,8 @@ import invaders.physics.ProjectileStrategy;
 import invaders.physics.Vector2D;
 import invaders.rendering.Animator;
 import invaders.rendering.Renderable;
-
-import invaders.physics.ProjectileStrategy;
-
+import invaders.physics.BoxCollider;
 import javafx.scene.image.Image;
-
 import java.io.File;
 
 public class Enemy implements Moveable, Damagable, Renderable {
@@ -25,13 +22,25 @@ public class Enemy implements Moveable, Damagable, Renderable {
     private final double height = 30;
     private final Image image;
 
+    private BoxCollider collider;
     private ProjectileStrategy projectileStrategy;
+
+    private boolean shouldRemove = false;
 
     public Enemy(EnemyType enemyType, Vector2D location) {
         this.position = location;
         this.image = new Image(new File("src/main/resources/" + enemyType.getImageName()).toURI().toString());
         this.value = enemyType.getValue();
         this.projectileStrategy = enemyType.getProjectileStrategy();
+        this.collider = new BoxCollider(width, height, position);
+    }
+
+    public void setCollider(BoxCollider collider){
+        this.collider = collider;
+    }
+
+    public BoxCollider getCollider() {
+        return collider;
     }
 
     @Override

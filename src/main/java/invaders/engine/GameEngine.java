@@ -2,14 +2,16 @@ package invaders.engine;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import invaders.GameObject;
+import invaders.entities.Bunker;
 import invaders.entities.Player;
 import invaders.entities.Enemy;
+import invaders.logic.BunkerBuilder;
 import invaders.physics.Vector2D;
 import invaders.rendering.Renderable;
 import invaders.logic.Wave;
 import invaders.entities.Projectile;
+import java.util.Iterator;
 
 /**
  * This class manages the main loop and logic of the game
@@ -20,19 +22,22 @@ public class GameEngine {
 	private List<Renderable> renderables;
 	private Player player;
 	private Wave wave;
-	private boolean gameLost;
+	private boolean gameLost = false;
 
 	private boolean left;
 	private boolean right;
 
 	private long lastWaveMoveTime;
-	private long waveMoveInterval = 100; // interval in milliseconds // og is 250
+	private long waveMoveInterval = 250; // interval in milliseconds
 
 	private List<Projectile> playerProjectiles;
 	private List<Projectile> enemyProjectiles;
+	private List<Bunker> bunkers;
+	
+	private int lives = 3;
 
 	public GameEngine(String config){
-		// read the config here
+		// setup for lists
 		gameobjects = new ArrayList<GameObject>();
 		renderables = new ArrayList<Renderable>();
 		playerProjectiles = new ArrayList<Projectile>();
@@ -50,9 +55,14 @@ public class GameEngine {
 			}
 		}
 
-//		Bunker bunker = new Bunker(new Vector2D(0,0), 50, 50);
-//		renderables.add(bunker);
+		// generate bunkers
+		BunkerBuilder bunkerBuilder = new BunkerBuilder("config.json");
+		bunkers = bunkerBuilder.getBunkers();
+		for (Bunker bunker : bunkers) {
+			renderables.add(bunker);
+		}
 
+		// time since last enemy move
 		lastWaveMoveTime = System.currentTimeMillis();
 	}
 
@@ -60,24 +70,97 @@ public class GameEngine {
 	 * Updates the game/simulation
 	 */
 	public void update(){
+
+		if(lives <= 0){
+			gameLost = true;
+		}
+
+		// stop game if lost
+		if(gameLost == true){
+			return;
+		}
+
 		movePlayer();
 		for(GameObject go: gameobjects){
 			go.update();
 		}
 
-		for(Projectile p: playerProjectiles){
-			if(p.offscreen() == true){
-				playerProjectiles.remove(p);
+		// loop through player projectiles
+		// Create a list to store projectiles that need to be removed
+		List<Projectile> projectilesToRemove = new ArrayList<>();
+
+		for (Projectile p : playerProjectiles) {
+			// Check if offscreen
+			if (p.offscreen()) {
+				projectilesToRemove.add(p);
 				renderables.remove(p);
+			}
+
+			// if collides with an enemy
+			for (ArrayList<Enemy> enemyRow : wave.getEnemyList()) {
+				Iterator<Enemy> enemyIterator = enemyRow.iterator();
+				while (enemyIterator.hasNext()) {
+					Enemy enemy = enemyIterator.next();
+					if (p.getCollider().isColliding(enemy.getCollider())) {
+						enemyIterator.remove();
+						renderables.remove(enemy);
+						renderables.remove(p);
+						projectilesToRemove.add(p);
+						waveMoveInterval -= 5;
+					}
+				}
+			}
+
+			// if collides with bunker, remove projectile
+			for (Bunker bunker : bunkers) {
+				Iterator<Bunker> bunkerIterator = bunkers.iterator();
+				while (bunkerIterator.hasNext()) {
+					Bunker b = bunkerIterator.next();
+					if (p.getCollider().isColliding(b.getCollider()) && bunker.getStillActive() == true) {
+						renderables.remove(p);
+						projectilesToRemove.add(p);
+					}
+				}
 			}
 		}
 
-		for(Projectile p: enemyProjectiles){
-			if(p.offscreen() == true){
-				enemyProjectiles.remove(p);
+		// Remove the projectiles that need to be removed
+		playerProjectiles.removeAll(projectilesToRemove);
+
+
+		// Loop through enemy projectiles
+		// Create a list to store enemy projectiles that need to be removed
+		List<Projectile> enemyProjectilesToRemove = new ArrayList<>();
+
+		for (Projectile p : enemyProjectiles) {
+			// Check if offscreen
+			if (p.offscreen()) {
+				enemyProjectilesToRemove.add(p);
 				renderables.remove(p);
 			}
+
+			// If hits player
+			if (p.getCollider().isColliding(player.getCollider())) {
+				lives--;
+				enemyProjectilesToRemove.add(p);
+				renderables.remove(p);
+			}
+
+			// If hits bunker
+			for(Bunker bunker : bunkers){
+				if (p.getCollider().isColliding(bunker.getCollider()) && bunker.getStillActive() == true) {
+					bunker.takeDamage(1);
+					enemyProjectilesToRemove.add(p);
+					if(bunker.getTimesHit() > 3){
+						renderables.remove(bunker);
+					}
+					renderables.remove(p);
+				}
+			}
 		}
+
+		// Remove the enemy projectiles that need to be removed
+		enemyProjectiles.removeAll(enemyProjectilesToRemove);
 
 		long currentTime = System.currentTimeMillis();
 
@@ -150,14 +233,6 @@ public class GameEngine {
 		this.right = true;
 	}
 
-//	public boolean projectileLimitReached(){
-//		if (this.projectiles.size() >= 3){
-//			return false;
-//		} else {
-//			return true;
-//		}
-//	}
-
 	public boolean shootPressed(){
 		Projectile projectile = player.shoot();
 		if (playerProjectiles.size() >= 1){
@@ -177,5 +252,9 @@ public class GameEngine {
 		if(right){
 			player.right();
 		}
+	}
+
+	public int getLives(){
+		return lives;
 	}
 }

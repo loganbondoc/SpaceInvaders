@@ -1,12 +1,9 @@
 package invaders.entities;
 
 import invaders.logic.Damagable;
-import invaders.physics.Moveable;
-import invaders.physics.Vector2D;
+import invaders.physics.*;
 import invaders.rendering.Animator;
 import invaders.rendering.Renderable;
-import invaders.physics.ProjectileStrategy;
-import invaders.physics.SlowProjectileStrategy;
 
 import javafx.scene.image.Image;
 
@@ -23,11 +20,21 @@ public class Player implements Moveable, Damagable, Renderable {
     private final Image image;
 
     private ProjectileStrategy projectileStrategy;
+    private BoxCollider collider;
 
     public Player(Vector2D position){
         this.image = new Image(new File("src/main/resources/player.png").toURI().toString(), width, height, true, true);
         this.position = position;
-        this.projectileStrategy = new SlowProjectileStrategy(); // Use the SlowProjectileStrategy for all player shots
+        this.projectileStrategy = new SlowProjectileStrategy(); // all player shots are slow
+        this.collider = new BoxCollider(width, height, position);
+    }
+
+    public void setCollider(BoxCollider collider){
+        this.collider = collider;
+    }
+
+    public BoxCollider getCollider() {
+        return collider;
     }
 
     @Override
