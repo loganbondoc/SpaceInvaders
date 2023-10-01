@@ -4,8 +4,6 @@ import invaders.entities.Projectile;
 
 public class SlowProjectileStrategy implements ProjectileStrategy {
 
-    final double speed = 1;
-
     @Override
     public void move(Projectile projectile, double velocity) {
         double speed = 1;
